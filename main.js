@@ -11,8 +11,6 @@ let get_year = today.getFullYear();
 let get_month = today.getMonth() + 1; // 1월달의 index가 0이므로 1을 더해줘야 함
 let get_day = today.getDay();
 let get_date = today.getDate();
-let get_hour = today.getHours();
-let get_min = today.getMinutes();
 
 let this_week = [];
 let selected_get_date = [];
@@ -28,13 +26,18 @@ week.innerHTML = `
                 <div class="sat">Sat</div>
 `;
 
+let last_month = new Date(get_year, get_month - 1, 0);
+let last_day = last_month.getDate();
+
 for(let i = 0; i < 7; i++) {
-    let resultDay = new Date(get_year, get_month - 1, get_date + (i - get_day));
+    let resultDay = new Date(get_year, get_month - 1, get_date + (i - get_day)); 
+    //위에서 today.getMonth()에 1을 더해줬으므로 get_month에서 1을 빼줌, 원래는 today.getMonth()에 해당하는 값만 들어가야 함
     let theMonth = Number(resultDay.getMonth()) + 1;
     let theDate = resultDay.getDate();
 
     theMonth = String(theMonth).length === 1 ? '0' + theMonth : theMonth;
     theDate = String(theDate).length === 1 ? '0' + theDate : theDate;
+    //날짜가 표시되는 자릿수를 맞추는 식
 
     this_week[i] = theDate;
 
@@ -66,74 +69,110 @@ for(let i = 0; i < 7; i++) {
 
             if(e.classList.contains('active')) {
                 selected_get_date = e.innerText;
-                selected_date.innerText = `${get_year}.${get_month}.${selected_get_date}`;
+            }
+            //console.log(e.nextElementSibling.innerText)
+            if(e.innerText != this_week[6]) {
+                if(e.innerText > e.nextElementSibling.innerText) {
+                    console.log('yes')
+                    selected_date.innerText = `${get_year}.${get_month-1}.${selected_get_date}`;
+                } else {
+                    selected_date.innerText = `${get_year}.${get_month}.${selected_get_date}`;
+                }
+            } else {
+                selected_date.innerText = `${get_year}.${get_month}.${this_week[6]}`;
             }
         })
-
-        if(e.classList.contains('active')) {
-            selected_get_date = e.innerText;
-        }
+        selected_date.innerText = `${get_year}.${get_month}.${get_date}`;
     })
 }
 
-selected_date.innerText = `${get_year}.${get_month}.${selected_get_date}`;
-
-const check_button = document.querySelectorAll('.check');
-const delete_button = document.querySelectorAll('.delete');
 const text_area = document.querySelector('.textarea');
 const submit = document.querySelector('.submit');
 const todoList = document.querySelector('.todo-list-content');
 const task = document.querySelectorAll('.task div');
 const add_sort = document.querySelectorAll('.add-sort > div');
+const study = document.querySelector('.study');
+const exercise = document.querySelector('.exercise');
+const other = document.querySelector('.other');
 
-function removeAllSort() {
-    add_sort.forEach(e => {
-        e.classList.remove('active');
-    })
-}
-
-add_sort.forEach(e => {
-    e.addEventListener('click', () => {
-        removeAllSort();
-        e.classList.add('active');
-    })
-})
-
-check_button.forEach(e => {
-    e.addEventListener('click', () => {
-        if(e.classList.contains('active')) {
-            e.classList.remove('active');
-            e.parentElement.parentElement.style.textDecoration = 'none';
-            e.style.color = '#fff';
-        } else {
-            //console.log(e.parentElement.parentElement.innerText)
-            e.parentElement.parentElement.style.textDecoration = "line-through";
-            e.style.color = 'gray';
-            e.classList.add('active');
-        }
-    })    
-})
-
-delete_button.forEach(e => {
-    e.addEventListener('click', () => {
-        console.log(e)
-    })
-})
+//localStorage.clear();
+let index = 0;
 
 submit.addEventListener('click', () => {
+    let now = new Date();
+    let get_hour = now.getHours();
+    let get_data_hour = get_hour < 10 ? `0${get_hour}` : `${get_hour}`;
+    let get_min = now.getMinutes();
+    let get_data_min = get_min < 10 ? `0${get_min}` : `${get_min}`;
+    let get_sec = now.getSeconds();
+    let get_data_sec = get_sec < 10 ? `0${get_sec}` : `${get_sec}`;
+
     let content = `
                 <div class="todo">
                     ${text_area.value} 
                     <div class="time">
-                        ${get_hour}:${get_min}
+                        ${get_data_hour}:${get_data_min}:${get_data_sec}
                     </div>
-                    <div class="button">
+                    <div class="button button${index}">
                         <div class="check"><i class="ri-check-line"></i></div>
                         <div class="delete"><i class="ri-close-line"></i></div>
                     </div>
                 </div>
     `;
-    todoList.insertAdjacentHTML('beforeend', content);
+    
+    myStorage = window.localStorage;
+    myStorage.setItem(`todo${index}`, JSON.stringify(content));
+    let get_content = JSON.parse(myStorage.getItem(`todo${index}`));
+    todoList.insertAdjacentHTML('beforeend', get_content);
+
+    text_area.value = "";
+
+    const check_button = document.querySelectorAll('.check');
+    const delete_button = document.querySelectorAll('.delete');
+
+    check_button.forEach(e => {
+        e.addEventListener('click', () => {
+            if(e.classList.contains('active')) {
+                e.classList.remove('active');
+                e.parentElement.parentElement.style.textDecoration = 'none';
+                e.style.color = '#fff';
+            } else {
+                //console.log(e.parentElement.parentElement.innerText)
+                e.parentElement.parentElement.style.textDecoration = "line-through";
+                e.style.color = 'gray';
+                e.classList.add('active');
+            }
+        })    
+    })
+
+    delete_button.forEach(e => {
+        e.addEventListener('click', () => {
+            let remove_content = e.parentElement.parentElement;
+            e.parentElement.parentElement.parentElement.removeChild(remove_content); 
+            for(let i = 0; i <= index; i++) {
+                if(delete_button[i].parentElement.parentElement == remove_content) {
+                    //console.log(i)
+                    myStorage.removeItem(`todo${i}`);
+                    index--;
+                }
+            } 
+        })
+    })
+
+    index++;
+
+    const todo = document.querySelectorAll('.todo-list .todo');
+    console.log(todo)
+
+    task.forEach(e => {
+        e.addEventListener('click', () => {
+            e.classList.toggle('active')
+        })
+
+        if(e.classList.contains('active')) {
+            todo[index-1].style.backgroundColor = e.id;
+        } 
+    })
 })
 
 function removeAllColor() {
@@ -153,3 +192,15 @@ task.forEach(e => {
     })
 })
 
+function removeAllSort() {
+    add_sort.forEach(e => {
+        e.classList.remove('active');
+    })
+}
+
+add_sort.forEach(e => {
+    e.addEventListener('click', () => {
+        removeAllSort();
+        e.classList.add('active');
+    })
+})
