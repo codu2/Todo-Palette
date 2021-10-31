@@ -302,3 +302,10 @@ body {
 .add-sort > div.active {
   border: 1px solid #000;
 }
+
+.todo-list .todo {
+  height: 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
