@@ -58,6 +58,7 @@ for(let i = 0; i < 7; i++) {
             e.classList.remove('active');
         })
     }
+  
     each_day.forEach(e => {
         if(e.innerText == get_date) {
             e.classList.add('active');
@@ -72,14 +73,18 @@ for(let i = 0; i < 7; i++) {
             }
             //console.log(e.nextElementSibling.innerText)
             if(e.innerText != this_week[6]) {
+                console.log(e)
                 if(e.innerText > e.nextElementSibling.innerText) {
-                    console.log('yes')
-                    selected_date.innerText = `${get_year}.${get_month-1}.${selected_get_date}`;
+                    if(e.previousElementSibling.innerText < e.innerText) {
+                        selected_date.innerText = `${get_year}.${theMonth-1}.${selected_get_date}`;      
+                    } else {
+                        selected_date.innerText = `${get_year}.${theMonth-1}.${selected_get_date}`;
+                    }
                 } else {
-                    selected_date.innerText = `${get_year}.${get_month}.${selected_get_date}`;
+                    selected_date.innerText = `${get_year}.${theMonth}.${selected_get_date}`;
                 }
             } else {
-                selected_date.innerText = `${get_year}.${get_month}.${this_week[6]}`;
+                selected_date.innerText = `${get_year}.${theMonth}.${this_week[6]}`;
             }
         })
         selected_date.innerText = `${get_year}.${get_month}.${get_date}`;
@@ -121,7 +126,13 @@ submit.addEventListener('click', () => {
     `;
     
     myStorage = window.localStorage;
-    myStorage.setItem(`todo${index}`, JSON.stringify(content));
+    if(myStorage.getItem(`todo${index}`) == null) {
+        myStorage.setItem(`todo${index}`, JSON.stringify(content));
+    } else {
+        index += 1;
+        myStorage.setItem(`todo${index}`, JSON.stringify(content));
+    }
+  
     let get_content = JSON.parse(myStorage.getItem(`todo${index}`));
     todoList.insertAdjacentHTML('beforeend', get_content);
 
@@ -132,31 +143,36 @@ submit.addEventListener('click', () => {
 
     check_button.forEach(e => {
         e.addEventListener('click', () => {
+            /*
             if(e.classList.contains('active')) {
-                e.classList.remove('active');
+                e.classList.toggle('active');
                 e.parentElement.parentElement.style.textDecoration = 'none';
-                e.style.color = '#fff';
-            } else {
-                //console.log(e.parentElement.parentElement.innerText)
-                e.parentElement.parentElement.style.textDecoration = "line-through";
-                e.style.color = 'gray';
-                e.classList.add('active');
+                e.style.textDecoration = "none";
+                check_length--;
             }
+            */
+            e.parentElement.parentElement.style.textDecoration = "line-through";
+            e.classList.add('active');
+            e.style.textDecoration = "line-through";
         })    
     })
 
     delete_button.forEach(e => {
         e.addEventListener('click', () => {
             let remove_content = e.parentElement.parentElement;
-            e.parentElement.parentElement.parentElement.removeChild(remove_content); 
-            for(let i = 0; i <= index; i++) {
+            console.log(remove_content)
+            remove_content.remove()
+            for(let i = 0; i < index; i++) {
                 if(delete_button[i].parentElement.parentElement == remove_content) {
-                    //console.log(i)
+                    console.log(i)
                     myStorage.removeItem(`todo${i}`);
                     index--;
                 }
-            } 
-        })
+            }
+            if(e.previousElementSibling.classList.contains('active')) {
+                check_length--;
+            }
+        }, false);
     })
 
     index++;
